@@ -75,7 +75,7 @@ public class SalvoController {
             dto.put("playerLoggedIn", null);
         }
         GamePlayer gamePlayer = gamePlayerRepository.getOne(gamePlayerId);
-        dto.put("ships", getShipList(gamePlayer.getShips()));
+        dto.put("ships", gamePlayer.getShipList());
         return dto;
     }
 
@@ -96,39 +96,16 @@ public class SalvoController {
 
 //***************************************GAME_VIEW****************************************/
     @RequestMapping("/game_view/{gamePlayerId}")
-    public ResponseEntity gameView(@PathVariable long gamePlayerId, Authentication authentication){
+    public ResponseEntity<Object> gameView(@PathVariable long gamePlayerId, Authentication authentication) {
         GamePlayer gamePlayer = gamePlayerRepository.getOne(gamePlayerId);
 
-        if(gamePlayer.getPlayer().getId() == playerRepository.findByUsername(authentication.getName()).getId()){
-            return ResponseEntity.ok(gameViewDto(gamePlayer));
-        }else{
-            ResponseEntity responseEntity = new ResponseEntity(HttpStatus.FORBIDDEN);
-            return responseEntity;
+        if (gamePlayer.getPlayer().getId() != playerRepository.findByUsername(authentication.getName()).getId()) {
+            return new ResponseEntity<>(makeMap("error", "not your game"), HttpStatus.FORBIDDEN);
         }
+        return new ResponseEntity<>(gamePlayer.gameViewDto(), HttpStatus.ACCEPTED);
+
     }
-    private Map<String, Object> gameViewDto(GamePlayer gamePlayer){
-        Map<String, Object> dto = new LinkedHashMap<>();
-        dto.put("id", gamePlayer.getGame().getId());
-        dto.put("created", gamePlayer.getGame().getCreationDate());
-        dto.put("gamePlayers", gamePlayer.getGame().getGamePlayers().stream().map(g ->g.makeGamePlayerDto()));
-        dto.put("ships", getShipList(gamePlayer.getShips()));
-        dto.put("salvoes", gamePlayer.getGame().getGamePlayers().stream()
-                                                                .flatMap(gp->gp.getSalvoes()
-                                                                                .stream()
-                                                                                .map(salvo -> salvo.makeSalvoDto())
-                                                                        )
-                                                                .collect(Collectors.toList())
-        );
-        return dto;
-    }
-    public List<Map<String, Object>> getShipList(Set<Ship> ships){
-        return ships.stream().map(ship-> ship.makeShipDto()).collect(Collectors.toList());
-    }
-    private Map<String, Object>hits(GamePlayer self,
-                                    GamePlayer enemy){
-        Map<String, Object> dto = new LinkedHashMap<>();
-        dto.put("self",self.getHits(self, enemy));
-    }
+
 
 //*****************************************LEADERBOARD********************************/
     @RequestMapping("/leaderboard")
