@@ -31,6 +31,8 @@ function loadData() {
       if(data.ships.length !=0){
         loadShips(data.ships, true)
         loadSalvoes(salvoPlayer,true);
+        makeGameRecordTable(data.hits.opponent, "tableOpponent");
+        makeGameRecordTable(data.hits.self, "tableSelf");
       }
       else{
       loadShips(data.ships, false);
@@ -429,4 +431,71 @@ const shotSalvo = function(){
   .fail(function(error){
     alert(JSON.parse(error.responseText).error);
   })
+}
+//*******************************************record table************************************* */
+function makeGameRecordTable(hits, tableID){
+  var tableId = "#"+ tableID + " tbody";
+  $(tableId).empty();
+  var ships = 5;
+
+  hits.forEach(function(playTurn){
+    var hitsReport = "";
+    if(playTurn.damages.carrierHits >0){
+      hitsReport += "Carrier " + addDamageIcons(playTurn.damages.carrierHits, "hit") + " ";
+      if(playTurn.damages.carrierHits === 5){
+        hitsReport += "Sunk";
+        ships--;
+      }
+    }
+    if(playTurn.damages.patrolBoatHits >0){
+      hitsReport += "Patrol Boat " + addDamageIcons(playTurn.damages.patrolBoatHits, "hit") + " ";
+      if(playTurn.damages.patrolBoatHits === 2){
+        hitsReport += "Sunk";
+        ships--;
+      }
+    }
+    if(playTurn.damages.submarineHits >0){
+      hitsReport += "Submarine " + addDamageIcons(playTurn.damages.submarineHits, "hit") + " ";
+      if(playTurn.damages.submarineHits === 3){
+        hitsReport += "Sunk";
+        ships--;
+      }
+    }
+    if(playTurn.damages.destroyerHits >0){
+      hitsReport += "Destroyer " + addDamageIcons(playTurn.damages.destroyerHits, "hit") + " ";
+      if(playTurn.damages.destroyerHits === 3){
+        hitsReport += "Sunk";
+        ships--;
+      } 
+    }
+    if(playTurn.damages.battleshipHits > 0){
+      hitsReport += "Battleship " + addDamageIcons(playTurn.damages.battleshipHits, "hit") + " ";
+      if(playTurn.damages.battleshipHits === 4){
+        hitsReport += "Sunk";
+        ships--;
+      }
+    }
+    if(playTurn.missed > 0){
+      hitsReport += "MissedShot "+ addDamageIcons(playTurn.missed, "missed") + " ";
+    }
+    if(hitsReport === ""){
+      hitsReport += "All salvoes missed"
+    }
+    $('<tr><td class="textCenter">' + playTurn.turn + '</td><td>' + hitsReport + '</td></tr>').prependTo(tableId);
+  });
+}
+
+function addDamageIcons(numberOfHits, type){
+  var damageIcon = "";
+  if(type === "missed"){
+    for(var i=0; i<numberOfHits; i++){
+      damageIcon += '<img class="hitblast" src="style/ships/missed.png">';
+    }
+  }
+  if(type === "hit"){
+    for(var i=0; i<numberOfHits; i++){
+      damageIcon += '<img class="hitblast" src="style/ships/hit.png">';
+    }
+  }
+  return damageIcon;
 }
