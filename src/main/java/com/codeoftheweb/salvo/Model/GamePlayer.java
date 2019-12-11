@@ -134,7 +134,7 @@ public class GamePlayer {
                 case "carrier":
                     carrierLocations = ship.getShipLocations();
                     break;
-                case "patrolBoat":
+                case "patrol_boat":
                     patrolBoatLocations = ship.getShipLocations();
                     break;
                 case "submarine":

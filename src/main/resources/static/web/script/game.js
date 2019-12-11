@@ -1,4 +1,5 @@
 var shipsPlayer =[]; 
+var gpId = getParameterByName('gp');
 $(function () {
   loadData();
 });
@@ -11,11 +12,12 @@ function getParameterByName(name) {
 function loadData() {
   $.get('/api/game_view/' + getParameterByName('gp'))
     .done(function (data) {
-      console.log(data);
+      //console.log(data);
       shipsPlayer = data.ships;
-      console.log(shipsPlayer);
+      //console.log(shipsPlayer);
+      gameData = data;
       
-      var gpId = getParameterByName('gp');
+      users();
       var player = {};
       data.gamePlayers.forEach(function(gamePlayer){
         if(gamePlayer.id == gpId){
@@ -31,6 +33,24 @@ function loadData() {
       if(data.ships.length !=0){
         loadShips(data.ships, true)
         loadSalvoes(salvoPlayer,true);
+        data.hits.opponent.forEach(function(playTurn){
+          playTurn.hitLocations.forEach(function(hit){
+            x = +(hit.substring(1)) - 1;
+            y = hit.charCodeAt(0) - 65;
+
+            cellIDSalvo = "#salvoPlaced" + y + x;
+            $(cellIDSalvo).addClass("hitCell");
+          });
+        });
+
+      data.hits.self.forEach(function(playTurn){
+        playTurn.hitLocations.forEach(function(hit){
+          x = +(hit.substring(1) - 1);
+          y = hit.charCodeAt(0) -65;
+          cellIDShip = "#shipsPlaced" + y + x;
+          $(cellIDShip).addClass("shipHit");
+        })
+      })
         makeGameRecordTable(data.hits.opponent, "tableOpponent");
         makeGameRecordTable(data.hits.self, "tableSelf");
       }
@@ -42,6 +62,18 @@ function loadData() {
     .fail(function (jqXHR, textStatus) {
       alert('Failed: ' + textStatus);//Especificar cada error y  mensaje
     });
+}
+
+/*****************************************************Users **************************/
+function users(){
+  for(i=0; i< gameData.gamePlayers.length; i++){
+    if(gameData.gamePlayers[i].id == gpId){
+      currentPlayer = gameData.gamePlayers[i].player
+    }else{
+      opponent = gameData.gamePlayers[i].player
+    }
+  }
+  $("#playerInfo").text(currentPlayer.email + ' (you) VS ' + opponent.email);
 }
 
 /**********************************Function load Grid*********************************/
@@ -354,19 +386,6 @@ function placeShips(){
     }
   });
 
-  /*$.post({
-    url: "/api/games/players/"+getParameterByName('gp')+"/ships", 
-    data: JSON.stringify(shipsToPlace),
-    dataType: "text",
-    contentType: "application/json"
-  })
-  .done(function (data) {
-    alert( "ship added"+data);
-    location.reload();
-  })
-  .fail(function (error) {
-    alert("Failed to add ship: " + error.responseJSON.error);
-  })*/
 }
 //***********************************Data ships ******************/
 const getShipData = function (shipType) {
@@ -442,43 +461,43 @@ function makeGameRecordTable(hits, tableID){
     var hitsReport = "";
     if(playTurn.damages.carrierHits >0){
       hitsReport += "Carrier " + addDamageIcons(playTurn.damages.carrierHits, "hit") + " ";
-      if(playTurn.damages.carrierHits === 5){
-        hitsReport += "Sunk";
+      if(playTurn.damages.carrier === 5){
+        hitsReport += "Sunk! ";
         ships--;
       }
     }
     if(playTurn.damages.patrolBoatHits >0){
       hitsReport += "Patrol Boat " + addDamageIcons(playTurn.damages.patrolBoatHits, "hit") + " ";
-      if(playTurn.damages.patrolBoatHits === 2){
-        hitsReport += "Sunk";
+      if(playTurn.damages.patrolBoat === 2){
+        hitsReport += "Sunk! ";
         ships--;
       }
     }
     if(playTurn.damages.submarineHits >0){
       hitsReport += "Submarine " + addDamageIcons(playTurn.damages.submarineHits, "hit") + " ";
-      if(playTurn.damages.submarineHits === 3){
-        hitsReport += "Sunk";
+      if(playTurn.damages.submarine === 3){
+        hitsReport += "Sunk! ";
         ships--;
       }
     }
     if(playTurn.damages.destroyerHits >0){
       hitsReport += "Destroyer " + addDamageIcons(playTurn.damages.destroyerHits, "hit") + " ";
-      if(playTurn.damages.destroyerHits === 3){
-        hitsReport += "Sunk";
+      if(playTurn.damages.destroyer === 3){
+        hitsReport += "Sunk! ";
         ships--;
       } 
     }
     if(playTurn.damages.battleshipHits > 0){
       hitsReport += "Battleship " + addDamageIcons(playTurn.damages.battleshipHits, "hit") + " ";
-      if(playTurn.damages.battleshipHits === 4){
-        hitsReport += "Sunk";
+      if(playTurn.damages.battleship === 4){
+        hitsReport += "Sunk! ";
         ships--;
       }
     }
     if(playTurn.missed > 0){
       hitsReport += "MissedShot "+ addDamageIcons(playTurn.missed, "missed") + " ";
     }
-    if(hitsReport === ""){
+    if(hitsReport === " "){
       hitsReport += "All salvoes missed"
     }
     $('<tr><td class="textCenter">' + playTurn.turn + '</td><td>' + hitsReport + '</td></tr>').prependTo(tableId);

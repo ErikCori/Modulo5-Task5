@@ -140,12 +140,12 @@
     background-color: chocolate;
 }
 .boom{
-    background-image: url("ships/boom.jpg");
+    background-image: url("ships/wat.png");
     background-size: 85% 100%;
     background-position: center;
 }
 .targetCell{
-    background-image: url("ships/asdfgg.jpg");
+    background-image: url("ships/salvo.jpg");
     background-size: 85% 100%;
     background-position: center;
 }
@@ -161,4 +161,16 @@
     font-family: New Century;
     font-weight: bold;
     font-size: 50px;
+}
+#playerInfo{
+    font-weight: bold;
+}
+
+.hitCell{
+    background-image: url("ships/boom.jpg");
+    background-size: cover;
+}
+.shipHit{
+    background-color: red;
+    background-size: cover;
 }
